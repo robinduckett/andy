@@ -1,0 +1,112 @@
+<!doctype html>
+<meta charset="utf8">
+
+<link href="./bootstrap-combined.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background: #000;
+    }
+
+    #console {
+        position: absolute;
+        top: 60px;
+        bottom: 30%;
+        left: 60%;
+        right: 50px;
+        background: #000;
+        border: 2px solid #fff;
+        border-radius: 6px;
+        color: #fff;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+        font-size: 14px;
+        padding: 5px;
+        overflow-y: scroll;
+        white-space: pre-wrap;
+    }
+
+    #editor {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        bottom: 40px;
+        left: 0px;
+
+        font-size: 14px;
+    }
+
+    .navbar button {
+        margin-right: 5px;
+    }
+</style>
+
+<script src="./pp.js" type="text/javascript" charset="utf-8"></script>
+<script src="./ace.js" type="text/javascript" charset="utf-8"></script>
+
+<div class="navbar navbar-inverse navbar-static-top">
+    <div class="navbar-inner">
+        <a class="brand" href="#">Andy's Coding Thing</a>
+        <button class="btn btn-primary pull-left" onclick="runScript()">
+            Run Script <small>(Ctrl+R)</small>
+        </button>
+    </div>
+</div>
+
+<div class="navbar navbar-inverse navbar-fixed-bottom">
+    <div class="navbar-inner">
+        <button class="btn btn-primary pull-right" onclick="runScript()">
+            Run Script <small>(Ctrl+R)</small>
+        </button>
+    </div>
+</div>
+
+<div id="editor"></div>
+
+<div id="console"></div>
+
+<script>
+    ace.config.set('workerPath', './ace.js');
+    window.editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.getSession().setMode("ace/mode/javascript");
+    editor.setShowPrintMargin(false);
+    editor.getSession().setUseSoftTabs(true);
+
+    window.console = {
+        logs: [],
+        log: function() {
+            if (arguments[0] === "Could not load worker") return;
+            var $c = document.querySelector('#console')
+            var message = document.createElement("div");
+            message.innerHTML = this.getMessage(Array.prototype.slice.apply(arguments));
+            if (message.innerHTML === "{}") return;
+            $c.appendChild(message);
+            $c.scrollTop = $c.scrollHeight;
+        },
+        getMessage: function(msg) {
+            var message = [];
+
+            for (var tmp in msg) {
+                var value = pp(msg[tmp]);
+                message.push(value);
+            }
+
+            return message.join(' ');
+        }
+    };
+
+    var runScript = function() {
+        try {
+            eval(editor.getValue());
+        } catch (e) {
+            console.log("Error: " + e.message);
+        }
+    };
+
+    editor.commands.addCommand({
+        name: 'Run',
+        bindKey: {win: 'Ctrl-R',  mac: 'Command-R'},
+        exec: runScript,
+        readOnly: true // false if this command should not apply in readOnly mode
+    });
+</script>
